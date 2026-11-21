@@ -10,6 +10,15 @@ export default defineConfig({
     resolve: { tsconfigPaths: true },
     // Start builds into subfolders of this (output/client, output/server).
     build: { outDir: "output" },
+    // The prerender (below) fetches every page from a Vite preview server
+    // it starts with this config, in the build's own process. On
+    // localhost, that server listens on ::1 alone, while fetch gives ::1
+    // 250 ms and then tries 127.0.0.1, where nothing listens. So when
+    // rendering other pages holds the event loop longer, the build fails
+    // with `fetch failed` (ETIMEDOUT ::1, ECONNREFUSED 127.0.0.1). An
+    // address leaves nothing to race. Nothing else uses Vite's preview:
+    // `pnpm preview` runs source/node.ts.
+    preview: { host: "127.0.0.1" },
     plugins: [
         tailwindcss(),
         tanstackStart({

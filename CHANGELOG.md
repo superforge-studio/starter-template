@@ -249,6 +249,25 @@ Skyline's appointments and notes did.
   fill. `source/database/tests/fill.test.ts` tries both on tables of its
   own. How to tell a copy already has it: `later` in `fill.ts`.
 
+The build's prerender, steady on a busy machine: `pnpm build` no longer
+fails now and then with `fetch failed`, which held up a deploy until a
+rerun passed.
+
+- **The prerender's server on 127.0.0.1**, machinery:
+  `preview: { host: "127.0.0.1" }` in `vite.config.ts`. TanStack Start's
+  prerender fetches every page from a Vite preview server it starts with
+  the app's config, in the build's own process. On `localhost` that
+  server listened on `::1` alone, while `fetch` gave `::1` 250 ms before
+  it tried `127.0.0.1`, where nothing listened. So when rendering other
+  pages held the event loop longer, the build failed with
+  `TypeError: fetch failed` (`connect ETIMEDOUT ::1`, then
+  `connect ECONNREFUSED 127.0.0.1`), the more often the more pages a copy
+  prerenders and the busier the machine. On one address there's nothing
+  to race. Nothing else uses Vite's preview (`pnpm preview` runs
+  `source/node.ts`), and the dev server still answers on `localhost`. How
+  to tell a copy already has it: `vite.config.ts` sets `preview`'s
+  `host`.
+
 Flags:
 
 - **Owner**: the business's people go in `internal_users`, the owner
